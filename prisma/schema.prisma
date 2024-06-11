@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String?   @unique
+  email     String    @unique
+  picture   String?
+  password  String
+  bio       String?
+  posts     Post[]
+  followers User[]    @relation("UserFollows")
+  following User[]    @relation("UserFollows")
+  likes     Like[]
+  comments  Comment[]
+  sessions  Session[]
+  accounts  Account[]
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  imageUrl  String
+  caption   String
+  createdAt DateTime  @default(now())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  likes     Like[]
+  comments  Comment[]
+}
+
+model Like {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  postId Int
+  user   User @relation(fields: [userId], references: [id])
+  post   Post @relation(fields: [postId], references: [id])
+}
+
+model Comment {
+  id     Int    @id @default(autoincrement())
+  text   String
+  userId Int
+  postId Int
+  user   User   @relation(fields: [userId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id])
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
