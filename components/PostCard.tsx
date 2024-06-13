@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardBody, Image, Divider, Avatar } from '@nextui-org/react';
 import { cn } from '@nextui-org/theme';
 import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import NextImage from 'next/image';
 
 import { MotionDiv } from './MotionDiv';
 import LikeButton from './LikeButton';
@@ -40,17 +41,21 @@ const PostCard = ({ post }: CardPostProps) => {
               src={post.user?.picture ? post.user?.picture : ''}
             />
             {post.user?.username}
-            <span>.</span>
+            <span className="mb-2">
+              <b className="text-xl">.</b>
+            </span>
             <h5>Follow</h5>
           </small>
-          {/* <h4 className="font-bold text-large">Frontend Radio</h4> */}
         </CardHeader>
         <CardBody className="overflow-visible py-2">
           <Image
+            isBlurred
             alt={post.caption}
+            as={NextImage}
             className="rounded-xl object-cover"
+            height={200}
             src={post.imageUrl}
-            width="100%"
+            width={300}
           />
           <div className="flex justify-start">
             <LikeButton post={post} />
@@ -65,7 +70,6 @@ const PostCard = ({ post }: CardPostProps) => {
           <p className="m-2 text-default-500">{post.caption}</p>
           <small>{post.likes?.length} Likes</small>
           <Divider className="my-2" />
-          <small>Comments:</small>
           <div>
             {post.comments?.map((comment) => (
               <div key={comment.id}>
