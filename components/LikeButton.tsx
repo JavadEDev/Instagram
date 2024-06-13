@@ -1,6 +1,6 @@
 'use client';
 import { HeartIcon } from '@heroicons/react/24/outline';
-import { cn, divider } from '@nextui-org/theme';
+import { cn } from '@nextui-org/theme';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
@@ -9,7 +9,6 @@ import { isPostLiked, likePost, unlikePost } from '@/lib/action';
 
 const LikeButton = ({ post }: CardPostProps) => {
   const [isLiked, setIsLiked] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkIfLiked = async () => {
@@ -20,7 +19,6 @@ const LikeButton = ({ post }: CardPostProps) => {
       } else {
         setIsLiked(false);
       }
-      setLoading(false);
     };
 
     checkIfLiked();
@@ -50,16 +48,12 @@ const LikeButton = ({ post }: CardPostProps) => {
 
   return (
     <div>
-      {loading ? (
-        <HeartIcon className="w-6" />
-      ) : (
-        <button onClick={isLiked ? handleUnlike : handleLike}>
-          <HeartIcon
-            className={cn(`ml-2 w-6 hover:fill-red-500`, isLiked && '[&>path]:stroke-transparent')}
-            fill={isLiked ? 'red' : 'none'}
-          />
-        </button>
-      )}
+      <button onClick={isLiked ? handleUnlike : handleLike}>
+        <HeartIcon
+          className={cn(`m-2 w-6 hover:fill-red-500`, isLiked && '[&>path]:stroke-transparent')}
+          fill={isLiked ? 'red' : 'none'}
+        />
+      </button>
     </div>
   );
 };
