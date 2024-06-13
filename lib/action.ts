@@ -1,17 +1,17 @@
-"use server";
-import { join } from "path";
-import { writeFile } from "fs/promises";
+'use server';
+import { join } from 'path';
+import { writeFile } from 'fs/promises';
 
-import { AuthError, CredentialsSignin } from "next-auth";
-import { redirect } from "next/navigation";
+import { AuthError, CredentialsSignin } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
-import { createPostSchema, signUpSchema } from "./zod";
+import { createPostSchema, signUpSchema } from './zod';
 
-import { Post, PostState, SigninPropsState, State } from "@/types/definitions";
-import prisma from "@/db/prisma";
-import { signIn, auth } from "@/auth";
-import { hashPW } from "@/utils/authTools";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { Post, PostState, SigninPropsState, State } from '@/types/definitions';
+import prisma from '@/db/prisma';
+import { signIn, auth } from '@/auth';
+import { hashPW } from '@/utils/authTools';
 
 export async function getUserFromDb(email: string) {
   try {
@@ -25,25 +25,40 @@ export async function getUserFromDb(email: string) {
   }
 }
 
+export async function getUserId() {
+  try {
+    const session = await auth();
+
+    if (!session || !session.user) {
+      throw new Error('User not authenticated');
+    }
+    const userId = session.user.id;
+
+    return userId;
+  } catch (error) {
+    throw new Error(`Can not get user from session, ${error}`);
+  }
+}
+
 export async function authenticate(
   state: SigninPropsState,
   formData: FormData,
 ): Promise<SigninPropsState> {
   try {
-    await signIn("credentials", {
-      email: formData.get("email"),
-      password: formData.get("password"),
+    await signIn('credentials', {
+      email: formData.get('email'),
+      password: formData.get('password'),
     });
 
-    return { ...state, message: "Sign in successful" };
+    return { ...state, message: 'Sign in successful' };
   } catch (error: any) {
     if (error instanceof AuthError) {
       switch (CredentialsSignin.type) {
-        case "CredentialsSignin":
+        case 'CredentialsSignin':
           return {
             ...state,
-            emailError: "Email or Password is incorrect.",
-            passwordError: "Password is incorrect.",
+            emailError: 'Email or Password is incorrect.',
+            passwordError: 'Password is incorrect.',
           };
         default:
           return {
@@ -59,14 +74,14 @@ export async function authenticate(
 
 export async function signUp(state: State, formData: FormData) {
   const validatedFields = signUpSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
+    email: formData.get('email'),
+    password: formData.get('password'),
   });
 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Sign up.",
+      message: 'Missing Fields. Failed to Sign up.',
     };
   }
   const { email, password } = validatedFields.data;
@@ -77,7 +92,7 @@ export async function signUp(state: State, formData: FormData) {
     });
 
     if (existingUser) {
-      throw new Error("User already exists");
+      throw new Error('User already exists');
     }
 
     const hashedPassword = await hashPW(password);
@@ -88,16 +103,17 @@ export async function signUp(state: State, formData: FormData) {
         password: hashedPassword,
       },
     });
-    redirect("/dashboard");
+    redirect('/dashboard');
   } catch (error: any) {
     return { message: error.message, errors: {} };
   }
 }
+
 const saveFile = async (file: File) => {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const path = join(process.cwd(), "public", "uploads", file.name);
+  const path = join(process.cwd(), 'public', 'uploads', file.name);
 
   await writeFile(path, buffer);
 
@@ -106,14 +122,14 @@ const saveFile = async (file: File) => {
 
 export async function createPost(state: PostState, formData: FormData) {
   const validatedFields = createPostSchema.safeParse({
-    imageUrl: formData.get("imageUrl"),
-    caption: formData.get("caption"),
+    imageUrl: formData.get('imageUrl'),
+    caption: formData.get('caption'),
   });
 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Create Post.",
+      message: 'Missing Fields. Failed to Create Post.',
     };
   }
 
@@ -121,19 +137,14 @@ export async function createPost(state: PostState, formData: FormData) {
   const path = await saveFile(imageUrl);
 
   if (!path) {
-    throw new Error("Can not save file");
+    throw new Error('Can not save file');
   }
   try {
-    const session = await auth();
-
-    if (!session || !session.user) {
-      throw new Error("User not authenticated");
-    }
-    const userId = session.user.id;
+    const userId = await getUserId();
 
     await prisma.post.create({
       data: {
-        imageUrl: "/uploads/" + imageUrl.name,
+        imageUrl: '/uploads/' + imageUrl.name,
         caption,
         userId: Number(userId),
       },
@@ -141,7 +152,7 @@ export async function createPost(state: PostState, formData: FormData) {
   } catch (error: any) {
     return { message: error.message, errors: {} };
   }
-  redirect("/dashboard");
+  redirect('/dashboard');
 }
 
 export async function getPosts(): Promise<Post[]> {
@@ -158,41 +169,60 @@ export async function getPosts(): Promise<Post[]> {
   });
 }
 
-export async function likePost(postId: number) {
+export async function isPostLiked(postId: number) {
   try {
-    const session = await auth();
+    const userId = await getUserId();
 
-    if (!session || !session.user) {
-      throw new Error("User not authenticated");
-    }
-    const userId = session.user.id;
-    const like = await prisma.like.create({
-      data: {
-        userId: userId,
-        postId,
-      },
-    });
-
-    revalidatePath("/dashboard");
-
-    return like;
-  } catch (error) {
-    throw new Error("Error liking post");
-  }
-}
-
-export async function unlikePost(userId: number, postId: number) {
-  try {
-    const like = await prisma.like.deleteMany({
+    const like = await prisma.like.findFirst({
       where: {
         userId,
         postId,
       },
     });
 
-    return like;
+    revalidatePath('/dashboard');
+    if (!like?.id) {
+      return { success: false };
+    } else return { success: true };
   } catch (error) {
-    throw new Error("Error unliking post");
+    return { success: false, message: 'Error checking like status' };
+  }
+}
+export async function likePost(postId: number) {
+  try {
+    const userId = await getUserId();
+
+    await prisma.like.create({
+      data: {
+        userId: userId,
+        postId,
+      },
+    });
+
+    revalidatePath('/dashboard');
+
+    return { success: true, message: 'Post liked successfully!' };
+  } catch (error) {
+    return { success: false, message: 'Error liking post' };
+  }
+}
+
+export async function unlikePost(postId: number) {
+  try {
+    const userId = await getUserId();
+
+    await prisma.like.deleteMany({
+      where: {
+        userId: userId,
+        postId,
+      },
+    });
+
+    revalidatePath('/dashboard');
+
+    return { success: true, message: 'Post unliked successfully!' };
+  } catch (error) {
+    return { success: false, message: 'Error unliking post' };
   }
 }
 
@@ -209,7 +239,7 @@ export async function followUser(userId: number, followId: number) {
 
     return user;
   } catch (error) {
-    throw new Error("Error following user");
+    throw new Error('Error following user');
   }
 }
 
@@ -226,6 +256,6 @@ export async function unfollowUser(userId: number, followId: number) {
 
     return user;
   } catch (error) {
-    throw new Error("Error unfollowing user");
+    throw new Error('Error unfollowing user');
   }
 }

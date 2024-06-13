@@ -17,6 +17,7 @@ model User {
   picture   String?
   password  String
   bio       String?
+  createdAt DateTime  @default(now())
   posts     Post[]
   followers User[]    @relation("UserFollows")
   following User[]    @relation("UserFollows")
@@ -38,20 +39,22 @@ model Post {
 }
 
 model Like {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  postId Int
-  user   User @relation(fields: [userId], references: [id])
-  post   Post @relation(fields: [postId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
 }
 
 model Comment {
-  id     Int    @id @default(autoincrement())
-  text   String
-  userId Int
-  postId Int
-  user   User   @relation(fields: [userId], references: [id])
-  post   Post   @relation(fields: [postId], references: [id])
+  id        Int      @id @default(autoincrement())
+  text      String
+  userId    Int
+  postId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
 }
 
 model Session {
