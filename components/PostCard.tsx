@@ -29,10 +29,10 @@ const PostCard = ({ post }: CardPostProps) => {
     >
       <Card
         isBlurred
-        className="max-w-[610px] border-none bg-background/60 dark:bg-default-100/50"
+        className="max-h-[610px] border-none bg-background/60 dark:bg-default-100/50"
         shadow="sm"
       >
-        <CardHeader className="flex-col items-start px-4 pb-0 pt-2">
+        <CardHeader className="ml-4 flex-col items-start p-2">
           <small className="flex items-center gap-2">
             <Avatar
               isBordered
@@ -47,7 +47,7 @@ const PostCard = ({ post }: CardPostProps) => {
             <h5>Follow</h5>
           </small>
         </CardHeader>
-        <CardBody className="overflow-visible py-2">
+        <CardBody className="overflow-visible">
           <Image
             isBlurred
             alt={post.caption}
@@ -57,20 +57,24 @@ const PostCard = ({ post }: CardPostProps) => {
             src={post.imageUrl}
             width={300}
           />
-          <div className="flex justify-start">
+          <div className="flex space-x-2 pt-2">
             <LikeButton post={post} />
             <ChatBubbleLeftIcon
-              className={cn(
-                `m-2 w-6 hover:fill-lime-500`,
-                post.likes && '[&>path]:stroke-transparent',
-              )}
-              fill={post.likes ? 'black' : 'none'}
+              className="my-2 w-6 hover:fill-red-500"
+              fill={post.likes ? 'gray' : 'none'}
             />
           </div>
-          <p className="m-2 text-default-500">{post.caption}</p>
-          <small>{post.likes?.length} Likes</small>
-          <Divider className="my-2" />
-          <div>
+          <small className="pl-3">
+            <span className={cn(`font-light`, post.likes?.length > 0 && 'font-semibold')}>
+              {post.likes?.length} Likes
+            </span>
+          </small>
+          <p className="truncate p-3">
+            <span className="mr-1 font-semibold">{post.user?.username}</span>
+            {post.caption}
+          </p>
+          <Divider />
+          <div className="ml-5 h-10 overflow-y-scroll scrollbar-hide">
             {post.comments?.map((comment) => (
               <div key={comment.id}>
                 <p>
