@@ -1,18 +1,46 @@
-"use client";
+'use client';
 
-import { Button } from "@nextui-org/react";
-import { useFormStatus } from "react-dom";
+import { Button } from '@nextui-org/react';
+import { useFormStatus } from 'react-dom';
 
-const Submit = ({ label, ...btnProps }: { label: any }) => {
+type VariantTypes =
+  | 'solid'
+  | 'shadow'
+  | 'flat'
+  | 'bordered'
+  | 'light'
+  | 'faded'
+  | 'ghost'
+  | undefined;
+
+type colorTypes = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+type sizeTypes = 'sm' | 'md' | 'lg';
+type radiusTypes = 'none' | 'sm' | 'md' | 'lg' | 'full';
+const Submit = ({
+  label,
+  variant,
+  color,
+  size,
+  radius,
+  ...btnProps
+}: {
+  label: any;
+  variant: VariantTypes;
+  color: colorTypes;
+  size: sizeTypes;
+  radius: radiusTypes;
+}) => {
   const { pending } = useFormStatus();
 
   return (
     <Button
       {...btnProps}
-      color="primary"
+      color={color}
       isLoading={pending}
+      radius={radius}
+      size={size}
       type="submit"
-      variant="shadow"
+      variant={variant}
     >
       {label}
     </Button>

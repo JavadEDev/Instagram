@@ -7,6 +7,7 @@ import { MotionDiv } from './MotionDiv';
 import LikeButton from './LikeButton';
 
 import { CardPostProps } from '@/types/definitions';
+import CommentSection from './CommentSection';
 
 const variants = {
   hidden: { opacity: 0 },
@@ -60,12 +61,12 @@ const PostCard = ({ post }: CardPostProps) => {
           <div className="flex space-x-2 pt-2">
             <LikeButton post={post} />
             <ChatBubbleLeftIcon
-              className="my-2 w-6 hover:fill-red-500"
+              className="my-2 w-6 hover:fill-zinc-200"
               fill={post.likes ? 'gray' : 'none'}
             />
           </div>
           <small className="pl-3">
-            <span className={cn(`font-light`, post.likes?.length > 0 && 'font-semibold')}>
+            <span className={cn(`font-light`, !!post.likes?.length && 'font-semibold')}>
               {post.likes?.length} Likes
             </span>
           </small>
@@ -74,15 +75,7 @@ const PostCard = ({ post }: CardPostProps) => {
             {post.caption}
           </p>
           <Divider />
-          <div className="ml-5 h-10 overflow-y-scroll scrollbar-hide">
-            {post.comments?.map((comment) => (
-              <div key={comment.id}>
-                <p>
-                  <strong>{comment.user.username}:</strong> {comment.text}
-                </p>
-              </div>
-            ))}
-          </div>
+          <CommentSection post={post} />
         </CardBody>
       </Card>
     </MotionDiv>

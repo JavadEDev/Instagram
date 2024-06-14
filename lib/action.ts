@@ -188,6 +188,7 @@ export async function isPostLiked(postId: number) {
     return { success: false, message: 'Error checking like status' };
   }
 }
+
 export async function likePost(postId: number) {
   try {
     const userId = await getUserId();
@@ -259,3 +260,42 @@ export async function unfollowUser(userId: number, followId: number) {
     throw new Error('Error unfollowing user');
   }
 }
+export async function addComment(postId: number, text: string) {
+  const userId = await getUserId();
+
+  return await prisma.comment.create({
+    data: {
+      userId: userId,
+      postId,
+      text,
+    },
+  });
+}
+export async function getComments(postId: number) {
+  return await prisma.comment.findMany({
+    where: { postId },
+    include: { user: true },
+  });
+}
+
+/* export async function sendMessage(senderId: number, receiverId: number, content: string) {
+  return await prisma.message.create({
+    data: {
+      senderId,
+      receiverId,
+      content,
+    },
+  });
+}
+
+export async function getMessages(userId: number) {
+  return await prisma.message.findMany({
+    where: {
+      OR: [{ senderId: userId }, { receiverId: userId }],
+    },
+    include: {
+      sender: true,
+      receiver: true,
+    },
+  });
+} */

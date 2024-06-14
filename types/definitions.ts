@@ -41,6 +41,15 @@ export type PostState = {
   };
   message: string | null;
 };
+
+export type CommentState = {
+  errors: {
+    text?: string[];
+    postId?: number;
+    userId?: number;
+  };
+  message: string | null;
+};
 export interface Post {
   id: number;
   imageUrl: string;
