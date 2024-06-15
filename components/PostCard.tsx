@@ -1,11 +1,11 @@
 import { Card, CardHeader, CardBody, Image, Divider, Avatar } from '@nextui-org/react';
 import { cn } from '@nextui-org/theme';
-import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import NextImage from 'next/image';
 
 import { MotionDiv } from './MotionDiv';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
+import CommentButton from './CommentButton';
 
 import { CardPostProps } from '@/types/definitions';
 
@@ -60,10 +60,7 @@ const PostCard = ({ post }: CardPostProps) => {
           />
           <div className="flex space-x-2 pt-2">
             <LikeButton post={post} />
-            <ChatBubbleLeftIcon
-              className="my-2 w-6 hover:fill-zinc-200"
-              fill={post.likes ? 'gray' : 'none'}
-            />
+            <CommentButton post={post} />
           </div>
           <small className="pl-3">
             <span className={cn(`font-light`, !!post.likes?.length && 'font-semibold')}>

@@ -48,6 +48,7 @@ export default function CommentSection({ post }: CardPostProps) {
         <input
           ref={commentInputRef}
           className="col-span-4 mx-1 border-none outline-none focus:ring-0"
+          id={`comment-input-${post.id}`}
           name="comment"
           placeholder="Add a comment ..."
           type="text"
