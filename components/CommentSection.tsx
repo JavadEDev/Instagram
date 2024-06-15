@@ -3,6 +3,7 @@ import { useFormState } from 'react-dom';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useRef } from 'react';
+import Moment from 'react-moment';
 
 import Submit from './Submit';
 
@@ -30,8 +31,13 @@ export default function CommentSection({ post }: CardPostProps) {
         <div className="ml-2 h-20 overflow-y-scroll scrollbar-hide">
           {post.comments?.map((comment) => (
             <div key={comment.id}>
-              <small>
-                <strong>{comment.user?.username}:</strong> {comment.text}
+              <small className="flex flex-wrap">
+                <div className="flex-1">
+                  <strong>{comment.user?.username}:</strong> {comment.text}
+                </div>
+                <Moment fromNow className=" ">
+                  {post.createdAt}
+                </Moment>
               </small>
             </div>
           ))}
