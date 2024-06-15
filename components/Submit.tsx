@@ -16,12 +16,14 @@ type VariantTypes =
 type colorTypes = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
 type sizeTypes = 'sm' | 'md' | 'lg';
 type radiusTypes = 'none' | 'sm' | 'md' | 'lg' | 'full';
+type isIconType = boolean;
 const Submit = ({
   label,
   variant,
   color,
   size,
   radius,
+  isIconOnly,
   ...btnProps
 }: {
   label: any;
@@ -29,6 +31,7 @@ const Submit = ({
   color: colorTypes;
   size: sizeTypes;
   radius: radiusTypes;
+  isIconOnly?: isIconType;
 }) => {
   const { pending } = useFormStatus();
 
@@ -36,6 +39,7 @@ const Submit = ({
     <Button
       {...btnProps}
       color={color}
+      isIconOnly={isIconOnly}
       isLoading={pending}
       radius={radius}
       size={size}

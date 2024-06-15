@@ -5,9 +5,9 @@ import NextImage from 'next/image';
 
 import { MotionDiv } from './MotionDiv';
 import LikeButton from './LikeButton';
+import CommentSection from './CommentSection';
 
 import { CardPostProps } from '@/types/definitions';
-import CommentSection from './CommentSection';
 
 const variants = {
   hidden: { opacity: 0 },

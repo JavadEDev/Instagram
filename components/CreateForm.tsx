@@ -1,25 +1,22 @@
-"use client";
-import { Input } from "@nextui-org/input";
-import { useFormState } from "react-dom";
+'use client';
+import { Input } from '@nextui-org/input';
+import { useFormState } from 'react-dom';
 
-import { createPost } from "@/lib/action";
-import Submit from "@/components/Submit";
-import { PostState } from "@/types/definitions";
+import { createPost } from '@/lib/action';
+import Submit from '@/components/Submit';
+import { PostState } from '@/types/definitions';
 
 export default function CreateForm() {
   const initialState: PostState = { message: null, errors: {} };
-  const [state, action] = useFormState<PostState, FormData>(
-    createPost,
-    initialState,
-  );
+  const [state, action] = useFormState<PostState, FormData>(createPost, initialState);
 
   return (
     <div>
       <form
         action={action}
-        className="bg-content1 border border-default-100 shadow-lg rounded-md p-3 flex flex-col gap-2 "
+        className="flex flex-col gap-2 rounded-md border border-default-100 bg-content1 p-3 shadow-lg"
       >
-        <h1 className="text-2xl font-bold mb-4">Create a New Post</h1>
+        <h1 className="mb-4 text-2xl font-bold">Create a New Post</h1>
         <Input
           fullWidth
           required
@@ -56,7 +53,7 @@ export default function CreateForm() {
               </p>
             ))}
         </div>
-        <Submit label={"Upload"} />
+        <Submit color="success" label={'Upload'} radius={'md'} size={'sm'} variant={'shadow'} />
       </form>
     </div>
   );

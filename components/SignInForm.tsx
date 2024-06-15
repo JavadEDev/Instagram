@@ -1,35 +1,32 @@
-"use client";
-import React from "react";
-import { useFormState } from "react-dom";
-import { Input } from "@nextui-org/react";
-import Link from "next/link";
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+'use client';
+import React from 'react';
+import { useFormState } from 'react-dom';
+import { Input } from '@nextui-org/react';
+import Link from 'next/link';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
-import Submit from "./Submit";
-import { LockIcon, MailIcon } from "./icons";
+import Submit from './Submit';
+import { LockIcon, MailIcon } from './icons';
 
-import { authenticate } from "@/lib/action";
-import { SigninPropsState } from "@/types/definitions";
+import { authenticate } from '@/lib/action';
+import { SigninPropsState } from '@/types/definitions';
 
 const SignInForm = () => {
   const initialState: SigninPropsState = { message: null, errors: {} };
-  const [state, action] = useFormState<SigninPropsState, FormData>(
-    authenticate,
-    initialState,
-  );
+  const [state, action] = useFormState<SigninPropsState, FormData>(authenticate, initialState);
 
   return (
     <form
       action={action}
-      className="bg-content1 border border-default-100 shadow-lg rounded-md p-3 flex flex-col gap-2 "
+      className="flex flex-col gap-2 rounded-md border border-default-100 bg-content1 p-3 shadow-lg"
     >
-      <h3 className={`mb-3 font-lusitana text-2xl`}>Sign in</h3>
+      <h3 className={`font-lusitana mb-3 text-2xl`}>Sign in</h3>
       <Input
         fullWidth
         required
         aria-describedby="email-error"
         endContent={
-          <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+          <MailIcon className="pointer-events-none flex-shrink-0 text-2xl text-default-400" />
         }
         id="email"
         name="email"
@@ -43,7 +40,7 @@ const SignInForm = () => {
         required
         aria-describedby="password-error"
         endContent={
-          <LockIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+          <LockIcon className="pointer-events-none flex-shrink-0 text-2xl text-default-400" />
         }
         id="password"
         minLength={6}
@@ -53,7 +50,7 @@ const SignInForm = () => {
         type="password"
         variant="bordered"
       />
-      <Submit label={"signin"} />
+      <Submit color={'success'} label={'signin'} radius={'sm'} size={'md'} variant={'shadow'} />
       <div>
         <Link
           className="mx-2 text-sm font-semibold"

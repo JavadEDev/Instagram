@@ -6,9 +6,9 @@ import { AuthError, CredentialsSignin } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
-import { createPostSchema, signUpSchema } from './zod';
+import { commentSchema, createPostSchema, signUpSchema } from './zod';
 
-import { Post, PostState, SigninPropsState, State } from '@/types/definitions';
+import { CommentState, Post, PostState, SigninPropsState, State } from '@/types/definitions';
 import prisma from '@/db/prisma';
 import { signIn, auth } from '@/auth';
 import { hashPW } from '@/utils/authTools';
@@ -156,17 +156,23 @@ export async function createPost(state: PostState, formData: FormData) {
 }
 
 export async function getPosts(): Promise<Post[]> {
-  return await prisma.post.findMany({
-    include: {
-      user: true,
-      likes: true,
-      comments: {
-        include: {
-          user: true,
+  try {
+    const posts = await prisma.post.findMany({
+      include: {
+        user: true,
+        likes: true,
+        comments: {
+          include: {
+            user: true,
+          },
         },
       },
-    },
-  });
+    });
+
+    return posts as unknown as Post[];
+  } catch (error: any) {
+    throw new Error(`Failed to fetch posts.${error.message}`);
+  }
 }
 
 export async function isPostLiked(postId: number) {
@@ -260,17 +266,41 @@ export async function unfollowUser(userId: number, followId: number) {
     throw new Error('Error unfollowing user');
   }
 }
-export async function addComment(postId: number, text: string) {
-  const userId = await getUserId();
-
-  return await prisma.comment.create({
-    data: {
-      userId: userId,
-      postId,
-      text,
-    },
+export async function addComment(state: CommentState, formData: FormData): Promise<CommentState> {
+  const validatedFields = commentSchema.safeParse({
+    postId: formData.get('postId'),
+    comment: formData.get('comment'),
   });
+
+  if (!validatedFields.success) {
+    return {
+      ...state,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Failed to add Comment.',
+    };
+  }
+
+  const { postId, comment } = validatedFields.data;
+
+  try {
+    const userId = await getUserId();
+
+    await prisma.comment.create({
+      data: {
+        userId: userId,
+        postId: Number(postId),
+        text: comment as string,
+      },
+    });
+
+    revalidatePath('/dashboard');
+
+    return { ...state, message: 'Comment added successfully', errors: {} };
+  } catch (error: any) {
+    return { message: error.message, errors: {} };
+  }
 }
+
 export async function getComments(postId: number) {
   return await prisma.comment.findMany({
     where: { postId },

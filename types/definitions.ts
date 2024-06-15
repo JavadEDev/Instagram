@@ -30,8 +30,8 @@ export interface User {
   following?: User[];
   likes?: Like[];
   comments?: Comment[];
-  sessions: Session[];
-  accounts: Account[];
+  sessions?: Session[];
+  accounts?: Account[];
 }
 export type PostState = {
   errors: {
@@ -44,9 +44,8 @@ export type PostState = {
 
 export type CommentState = {
   errors: {
-    text?: string[];
-    postId?: number;
-    userId?: number;
+    postId?: string[];
+    comment?: string[];
   };
   message: string | null;
 };
@@ -67,6 +66,7 @@ export interface Like {
   postId: number;
   user: User;
   post: Post;
+  createdAt: Date;
 }
 
 export interface Comment {
@@ -74,7 +74,8 @@ export interface Comment {
   text: string;
   userId: number;
   postId: number;
-  user: User;
+  createdAt: Date;
+  user?: User;
   post: Post;
 }
 export interface Session {

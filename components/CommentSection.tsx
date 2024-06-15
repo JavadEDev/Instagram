@@ -1,5 +1,8 @@
 'use client';
 import { useFormState } from 'react-dom';
+import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
+import { useRef } from 'react';
 
 import Submit from './Submit';
 
@@ -9,36 +12,55 @@ import { addComment } from '@/lib/action';
 export default function CommentSection({ post }: CardPostProps) {
   const initialState: CommentState = { message: null, errors: {} };
   const [state, action] = useFormState<CommentState, FormData>(addComment, initialState);
+  const commentInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+
+    await action(formData);
+    if (commentInputRef.current) {
+      commentInputRef.current.value = '';
+    }
+  };
 
   return (
-    <div>
-      <div className="ml-5 h-10 overflow-y-scroll scrollbar-hide">
-        {post.comments?.map((comment) => (
-          <div key={comment.id}>
-            <p>
-              <strong>{comment.user.username}:</strong> {comment.text}
-            </p>
-          </div>
-        ))}
-      </div>
-      <form action={action} className="flex items-center justify-around">
+    <div className="mx-2">
+      {!!post.comments?.length && (
+        <div className="ml-2 h-20 overflow-y-scroll scrollbar-hide">
+          {post.comments?.map((comment) => (
+            <div key={comment.id}>
+              <small>
+                <strong>{comment.user?.username}:</strong> {comment.text}
+              </small>
+            </div>
+          ))}
+        </div>
+      )}
+      <form className="mt-2 grid grid-cols-5" onSubmit={handleSubmit}>
+        <input className="hidden" defaultValue={post.id} name="postId" type="number" />
         <input
-          aria-describedby="comment-error"
-          className="mx-1 flex-1 border-none outline-none focus:ring-0"
+          ref={commentInputRef}
+          className="col-span-4 mx-1 border-none outline-none focus:ring-0"
           name="comment"
           placeholder="Add a comment ..."
           type="text"
         />
-        <div aria-atomic="true" aria-live="polite" id="caption-error">
-          {state.errors.text &&
-            state.errors.text.map((error: string) => (
-              <p key={error} className="m-2 text-sm text-red-500">
-                {error}
-              </p>
-            ))}
+        <div className="col-span-1 w-4 place-self-end">
+          <Submit
+            color={'primary'}
+            isIconOnly={true}
+            label={<PaperAirplaneIcon className="w-6 -rotate-45" />}
+            radius="full"
+            size={'sm'}
+            variant={'light'}
+          />
         </div>
-        <Submit color={'primary'} label={'Post'} radius="full" size={'sm'} variant={'light'} />
       </form>
+      <div className="hidden">
+        {state.message && toast.success(state.message)}
+        {state.errors?.comment && state.errors?.comment.map((error: string) => toast.error(error))}
+      </div>
     </div>
   );
 }

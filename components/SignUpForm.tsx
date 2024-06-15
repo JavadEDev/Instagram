@@ -1,13 +1,13 @@
-"use client";
-import { useFormState } from "react-dom";
-import { Input } from "@nextui-org/react";
-import Link from "next/link";
+'use client';
+import { useFormState } from 'react-dom';
+import { Input } from '@nextui-org/react';
+import Link from 'next/link';
 
-import Submit from "./Submit";
-import { LockIcon, MailIcon } from "./icons";
+import Submit from './Submit';
+import { LockIcon, MailIcon } from './icons';
 
-import { signUp } from "@/lib/action";
-import { State } from "@/types/definitions";
+import { signUp } from '@/lib/action';
+import { State } from '@/types/definitions';
 
 const SignUpForm = () => {
   const initialState: State = { message: null, errors: {} };
@@ -16,7 +16,7 @@ const SignUpForm = () => {
   return (
     <form
       action={action}
-      className="bg-content1 border border-default-100 shadow-lg rounded-md p-3 flex flex-col gap-2 "
+      className="flex flex-col gap-2 rounded-md border border-default-100 bg-content1 p-3 shadow-lg"
     >
       <h3 className="my-4 text-2xl">Sign up</h3>
       <Input
@@ -24,7 +24,7 @@ const SignUpForm = () => {
         required
         aria-describedby="email-error"
         endContent={
-          <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+          <MailIcon className="pointer-events-none flex-shrink-0 text-2xl text-default-400" />
         }
         label="Email"
         name="email"
@@ -44,7 +44,7 @@ const SignUpForm = () => {
         required
         aria-describedby="password-error"
         endContent={
-          <LockIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+          <LockIcon className="pointer-events-none flex-shrink-0 text-2xl text-default-400" />
         }
         label="Password"
         name="password"
@@ -60,16 +60,14 @@ const SignUpForm = () => {
             </p>
           ))}
       </div>
-      <Submit label={"signup"} />
+      <Submit color={'primary'} label={'signup'} radius={'sm'} size={'md'} variant={'shadow'} />
       <div>
         <Link
           className="mx-2 text-sm font-semibold"
           href="/signin"
         >{`Already have an account?`}</Link>
       </div>
-      {state?.message && (
-        <p className="mx-2 text-sm text-red-500">{state.message}</p>
-      )}
+      {state?.message && <p className="mx-2 text-sm text-red-500">{state.message}</p>}
     </form>
   );
 };
