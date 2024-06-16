@@ -308,6 +308,57 @@ export async function getComments(postId: number) {
   });
 }
 
+export async function updateUser(formData: FormData): Promise<{ message: string; errors: any }> {
+  const userId = await getUserId();
+  const username = formData.get('username') as string;
+  const password = formData.get('password') as string;
+  const bio = formData.get('bio') as string;
+  const picture = formData.get('picture') as File;
+
+  const errors = {};
+  let message = 'Profile updated successfully';
+
+  try {
+    if (username) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { username },
+      });
+    }
+
+    if (password) {
+      const hashedPassword = await hashPW(password);
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+    }
+
+    if (bio) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { bio },
+      });
+    }
+
+    if (picture) {
+      const path = await saveFile(picture);
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { picture: '/uploads/' + picture.name },
+      });
+    }
+
+    revalidatePath('/settings'); // Adjust the path to your settings page
+  } catch (error) {
+    message = 'Failed to update profile';
+    errors.general = [error.message];
+  }
+
+  return { message, errors };
+}
 /* export async function sendMessage(senderId: number, receiverId: number, content: string) {
   return await prisma.message.create({
     data: {
