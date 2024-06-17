@@ -145,6 +145,7 @@ async function savePic(file: File): Promise<string> {
 
   return filePath;
 }
+
 async function uploadPic(image: File) {
   const buffer = Buffer.from(await image.arrayBuffer());
   const relativeUploadDir = `/uploads/${new Date(Date.now())
@@ -164,8 +165,6 @@ async function uploadPic(image: File) {
       // If the directory doesn't exist (ENOENT : Error No Entry), create one
       await mkdir(uploadDir, { recursive: true });
     } else {
-      console.error('Error while trying to create directory when uploading a file\n', e);
-
       return null;
     }
   }
@@ -410,10 +409,10 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
         data: { username },
       });
 
-      return { message: 'Username updated successfully', errors: {} };
+      // return { message: 'Username updated successfully', errors: {} };
     }
 
-    if (bio !== user.bio) {
+    if (bio !== user?.bio) {
       const bioValidatedField = bioSchema.safeParse({
         bio: formData.get('bio'),
       });
@@ -431,7 +430,7 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
         data: { bio },
       });
 
-      return { message: 'Bio updated successfully', errors: {} };
+      // return { message: 'Bio updated successfully', errors: {} };
     }
 
     if (picture) {
@@ -458,7 +457,7 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
         data: { picture: '/uploads/' + picture.name },
       });
 
-      return { message: 'Picture updated successfully', errors: {} };
+      // return { message: 'Picture updated successfully', errors: {} };
     }
 
     if (password && newpassword) {
@@ -491,7 +490,7 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
         data: { password: hashedNewPassword },
       });
 
-      return { message: 'New password updated successfully', errors: {} };
+      // return { message: 'New password updated successfully', errors: {} };
     }
     revalidatePath('/settings');
 
