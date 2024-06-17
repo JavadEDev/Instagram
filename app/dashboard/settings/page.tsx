@@ -10,7 +10,7 @@ const SettingsPage = async () => {
   if (!userInfo) return <div>User not found!</div>;
 
   return (
-    <section>
+    <section className="container mx-auto p-2">
       <Toaster />
       <SettingCard user={userInfo} />
     </section>

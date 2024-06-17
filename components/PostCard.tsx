@@ -49,10 +49,10 @@ const PostCard = ({ post }: CardPostProps) => {
           </small>
         </CardHeader>
         <CardBody className="overflow-visible">
-          <Image
-            isBlurred
+          <img
+            // isBlurred
             alt={post.caption}
-            as={NextImage}
+            // as={NextImage}
             className="rounded-xl object-cover"
             height={200}
             src={post.imageUrl}

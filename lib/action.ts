@@ -499,6 +499,17 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
     return { message: error.message, errors: {} };
   }
 }
+
+export async function userActivities() {
+  const userId = await getUserId();
+  const userPost = await prisma.post.findMany({
+    where: {
+      userId: userId,
+    },
+  });
+
+  return userPost;
+}
 /* export async function sendMessage(senderId: number, receiverId: number, content: string) {
   return await prisma.message.create({
     data: {
