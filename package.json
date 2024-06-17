@@ -45,6 +45,7 @@
 		"eslint-plugin-unused-imports": "^3.2.0",
 		"framer-motion": "^11.1.1",
 		"intl-messageformat": "^10.5.0",
+		"mime": "^4.0.3",
 		"next": "14.2.3",
 		"next-auth": "^5.0.0-beta.19",
 		"next-themes": "^0.2.1",

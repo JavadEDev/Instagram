@@ -1,6 +1,7 @@
 'use client';
 import { Input } from '@nextui-org/input';
 import { useFormState } from 'react-dom';
+import toast from 'react-hot-toast';
 
 import { createPost } from '@/lib/action';
 import Submit from '@/components/Submit';

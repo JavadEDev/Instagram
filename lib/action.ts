@@ -1,7 +1,8 @@
 'use server';
 import { join } from 'path';
-import { writeFile } from 'fs/promises';
+import { stat, mkdir, writeFile } from 'fs/promises';
 
+import mime from 'mime';
 import { AuthError, CredentialsSignin } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
@@ -12,7 +13,6 @@ import {
   createPostSchema,
   passwordSchema,
   pictureSchema,
-  settingSchema,
   signUpSchema,
   usernameSchema,
 } from './zod';
@@ -145,6 +145,42 @@ async function savePic(file: File): Promise<string> {
 
   return filePath;
 }
+async function uploadPic(image: File) {
+  const buffer = Buffer.from(await image.arrayBuffer());
+  const relativeUploadDir = `/uploads/${new Date(Date.now())
+    .toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+    .replace(/\//g, '-')}`;
+
+  const uploadDir = join(process.cwd(), 'public', relativeUploadDir);
+
+  try {
+    await stat(uploadDir);
+  } catch (e: any) {
+    if (e.code === 'ENOENT') {
+      // If the directory doesn't exist (ENOENT : Error No Entry), create one
+      await mkdir(uploadDir, { recursive: true });
+    } else {
+      console.error('Error while trying to create directory when uploading a file\n', e);
+
+      return null;
+    }
+  }
+  const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+  const filename = `${image.name.replace(
+    /\.[^/.]+$/,
+    '',
+  )}-${uniqueSuffix}.${mime.getExtension(image.type)}`;
+
+  await writeFile(`${uploadDir}/${filename}`, buffer);
+
+  const fileUrl = `${relativeUploadDir}/${filename}`;
+
+  return fileUrl;
+}
 
 const saveFile = async (file: File) => {
   const bytes = await file.arrayBuffer();
@@ -171,7 +207,7 @@ export async function createPost(state: PostState, formData: FormData) {
   }
 
   const { imageUrl, caption } = validatedFields.data;
-  const path = await saveFile(imageUrl);
+  const path = await uploadPic(imageUrl);
 
   if (!path) {
     throw new Error('Can not save file');
@@ -181,7 +217,7 @@ export async function createPost(state: PostState, formData: FormData) {
 
     await prisma.post.create({
       data: {
-        imageUrl: '/uploads/' + imageUrl.name,
+        imageUrl: path,
         caption,
         userId: Number(userId),
       },
