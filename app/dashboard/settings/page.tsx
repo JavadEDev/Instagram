@@ -1,3 +1,5 @@
+import { Toaster } from 'react-hot-toast';
+
 import SettingCard from '@/components/SettingCard';
 import { getUserFromDbWithId, getUserId } from '@/lib/action';
 
@@ -9,6 +11,7 @@ const SettingsPage = async () => {
 
   return (
     <section>
+      <Toaster />
       <SettingCard user={userInfo} />
     </section>
   );

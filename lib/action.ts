@@ -6,7 +6,16 @@ import { AuthError, CredentialsSignin } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
-import { commentSchema, createPostSchema, settingSchema, signUpSchema } from './zod';
+import {
+  bioSchema,
+  commentSchema,
+  createPostSchema,
+  passwordSchema,
+  pictureSchema,
+  settingSchema,
+  signUpSchema,
+  usernameSchema,
+} from './zod';
 
 import {
   CommentState,
@@ -337,44 +346,71 @@ export async function getComments(postId: number) {
 }
 
 export async function updateUser(state: SettingsState, formData: FormData): Promise<SettingsState> {
-  const validatedFields = settingSchema.safeParse({
-    username: formData.get('username'),
-    password: formData.get('password'),
-    newpassword: formData.get('newpassword'),
-    bio: formData.get('bio'),
-    picture: formData.get('picture'),
-  });
-  console.log('after validatedFields');
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Missing Fields. Failed to Update User.',
-    };
-  }
-  console.log('validatedFields success');
+  const username = formData.get('username') as string;
+  const password = formData.get('password') as string;
+  const newpassword = formData.get('newpassword') as string;
+  const bio = formData.get('bio') as string;
+  const picture = formData.get('picture') as File;
 
   const userId = await getUserId();
-  const { username, password, newpassword, bio, picture } = validatedFields.data;
-  console.log('get info', userId);
+  const user = await getUserFromDbWithId(userId);
 
   try {
-    if (username) {
+    if (username !== user?.username) {
+      const usernameValidatedField = usernameSchema.safeParse({
+        username: formData.get('username'),
+      });
+
+      if (!usernameValidatedField.success) {
+        return {
+          errors: usernameValidatedField.error.flatten().fieldErrors,
+          message: 'Missing Fields. Failed to Update Username.',
+        };
+      }
+      const { username } = usernameValidatedField.data;
+
       await prisma.user.update({
         where: { id: userId },
         data: { username },
       });
-      console.log('username');
+
+      return { message: 'Username updated successfully', errors: {} };
     }
 
-    if (bio) {
+    if (bio !== user.bio) {
+      const bioValidatedField = bioSchema.safeParse({
+        bio: formData.get('bio'),
+      });
+
+      if (!bioValidatedField.success) {
+        return {
+          errors: bioValidatedField.error.flatten().fieldErrors,
+          message: 'Missing Fields. Failed to Update Bio.',
+        };
+      }
+      const { bio } = bioValidatedField.data;
+
       await prisma.user.update({
         where: { id: userId },
         data: { bio },
       });
-      console.log('bio');
+
+      return { message: 'Bio updated successfully', errors: {} };
     }
 
     if (picture) {
+      const pictureValidatedField = pictureSchema.safeParse({
+        picture: formData.get('picture'),
+      });
+
+      if (!pictureValidatedField.success) {
+        return {
+          errors: pictureValidatedField.error.flatten().fieldErrors,
+          message: 'Missing Fields. Failed to Update Picture.',
+        };
+      }
+      const { picture } = pictureValidatedField.data;
+
       const path = await savePic(picture);
 
       if (!path) {
@@ -385,12 +421,29 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
         where: { id: userId },
         data: { picture: '/uploads/' + picture.name },
       });
-      console.log('picture');
+
+      return { message: 'Picture updated successfully', errors: {} };
     }
-    if (newpassword) {
-      const hashedPassword = await hashPW(password);
-      const user = await getUserFromDbWithId(userId);
-      const passwordsMatch = await comparePW(user?.password as string, hashedPassword);
+
+    if (password && newpassword) {
+      const passwordValidatedField = passwordSchema.safeParse({
+        password: formData.get('password'),
+        newpassword: formData.get('newpassword'),
+      });
+
+      if (!passwordValidatedField.success) {
+        return {
+          errors: passwordValidatedField.error.flatten().fieldErrors,
+          message: 'Missing Fields. Failed to Update New Password.',
+        };
+      }
+      const { password, newpassword } = passwordValidatedField.data;
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const passwordsMatch = await comparePW(password, user?.password);
 
       if (!passwordsMatch) {
         throw new Error('Your Password dose not match');
@@ -401,10 +454,10 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
         where: { id: userId },
         data: { password: hashedNewPassword },
       });
-      console.log('newpassword');
+
+      return { message: 'New password updated successfully', errors: {} };
     }
     revalidatePath('/settings');
-    console.log('revalidatePath');
 
     return { message: 'UserInfo Update successfully!', errors: {} };
   } catch (error: any) {
