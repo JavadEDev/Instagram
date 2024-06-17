@@ -6,12 +6,19 @@ import { AuthError, CredentialsSignin } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
-import { commentSchema, createPostSchema, signUpSchema } from './zod';
+import { commentSchema, createPostSchema, settingSchema, signUpSchema } from './zod';
 
-import { CommentState, Post, PostState, SigninPropsState, State } from '@/types/definitions';
+import {
+  CommentState,
+  Post,
+  PostState,
+  SettingsState,
+  SigninPropsState,
+  State,
+} from '@/types/definitions';
 import prisma from '@/db/prisma';
 import { signIn, auth } from '@/auth';
-import { hashPW } from '@/utils/authTools';
+import { comparePW, hashPW } from '@/utils/authTools';
 
 export async function getUserFromDb(email: string) {
   try {
@@ -25,6 +32,17 @@ export async function getUserFromDb(email: string) {
   }
 }
 
+export async function getUserFromDbWithId(id: number) {
+  try {
+    const user = await prisma?.user.findUnique({
+      where: { id },
+    });
+
+    return user;
+  } catch (error: any) {
+    throw new Error(`Failed to fetch user.${error.message}`);
+  }
+}
 export async function getUserId() {
   try {
     const session = await auth();
@@ -109,6 +127,16 @@ export async function signUp(state: State, formData: FormData) {
   }
 }
 
+async function savePic(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const fs = require('fs');
+  const filePath = `/uploads/${file.name}`;
+
+  fs.writeFileSync(`./public${filePath}`, buffer);
+
+  return filePath;
+}
+
 const saveFile = async (file: File) => {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
@@ -181,7 +209,7 @@ export async function isPostLiked(postId: number) {
 
     const like = await prisma.like.findFirst({
       where: {
-        userId,
+        userId: userId,
         postId,
       },
     });
@@ -308,15 +336,26 @@ export async function getComments(postId: number) {
   });
 }
 
-export async function updateUser(formData: FormData): Promise<{ message: string; errors: any }> {
-  const userId = await getUserId();
-  const username = formData.get('username') as string;
-  const password = formData.get('password') as string;
-  const bio = formData.get('bio') as string;
-  const picture = formData.get('picture') as File;
+export async function updateUser(state: SettingsState, formData: FormData): Promise<SettingsState> {
+  const validatedFields = settingSchema.safeParse({
+    username: formData.get('username'),
+    password: formData.get('password'),
+    newpassword: formData.get('newpassword'),
+    bio: formData.get('bio'),
+    picture: formData.get('picture'),
+  });
+  console.log('after validatedFields');
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Missing Fields. Failed to Update User.',
+    };
+  }
+  console.log('validatedFields success');
 
-  const errors = {};
-  let message = 'Profile updated successfully';
+  const userId = await getUserId();
+  const { username, password, newpassword, bio, picture } = validatedFields.data;
+  console.log('get info', userId);
 
   try {
     if (username) {
@@ -324,15 +363,7 @@ export async function updateUser(formData: FormData): Promise<{ message: string;
         where: { id: userId },
         data: { username },
       });
-    }
-
-    if (password) {
-      const hashedPassword = await hashPW(password);
-
-      await prisma.user.update({
-        where: { id: userId },
-        data: { password: hashedPassword },
-      });
+      console.log('username');
     }
 
     if (bio) {
@@ -340,24 +371,45 @@ export async function updateUser(formData: FormData): Promise<{ message: string;
         where: { id: userId },
         data: { bio },
       });
+      console.log('bio');
     }
 
     if (picture) {
-      const path = await saveFile(picture);
+      const path = await savePic(picture);
+
+      if (!path) {
+        throw new Error('Can not save file');
+      }
 
       await prisma.user.update({
         where: { id: userId },
         data: { picture: '/uploads/' + picture.name },
       });
+      console.log('picture');
     }
+    if (newpassword) {
+      const hashedPassword = await hashPW(password);
+      const user = await getUserFromDbWithId(userId);
+      const passwordsMatch = await comparePW(user?.password as string, hashedPassword);
 
-    revalidatePath('/settings'); // Adjust the path to your settings page
-  } catch (error) {
-    message = 'Failed to update profile';
-    errors.general = [error.message];
+      if (!passwordsMatch) {
+        throw new Error('Your Password dose not match');
+      }
+      const hashedNewPassword = await hashPW(newpassword);
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedNewPassword },
+      });
+      console.log('newpassword');
+    }
+    revalidatePath('/settings');
+    console.log('revalidatePath');
+
+    return { message: 'UserInfo Update successfully!', errors: {} };
+  } catch (error: any) {
+    return { message: error.message, errors: {} };
   }
-
-  return { message, errors };
 }
 /* export async function sendMessage(senderId: number, receiverId: number, content: string) {
   return await prisma.message.create({

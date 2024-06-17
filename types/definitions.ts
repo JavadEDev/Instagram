@@ -20,11 +20,11 @@ export interface CardPostProps {
 }
 export interface User {
   id: number;
-  username?: string;
+  username?: string | null;
   email: string;
   password: string;
-  picture?: string;
-  bio?: string;
+  picture?: string | null;
+  bio?: string | null;
   posts?: Post[];
   followers?: User[];
   following?: User[];
@@ -41,7 +41,17 @@ export type PostState = {
   };
   message: string | null;
 };
-
+export type SettingsState = {
+  errors: {
+    username?: string[];
+    email?: string[];
+    password?: string[];
+    newpassword?: string[];
+    picture?: string[];
+    bio?: string[];
+  };
+  message: string | null;
+};
 export type CommentState = {
   errors: {
     postId?: string[];
