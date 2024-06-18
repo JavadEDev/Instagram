@@ -6,6 +6,7 @@ import { MotionDiv } from './MotionDiv';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
 import CommentButton from './CommentButton';
+import FollowButton from './FollowButton';
 
 import { CardPostProps } from '@/types/definitions';
 
@@ -13,7 +14,6 @@ const variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
 };
-
 const PostCard = ({ post }: CardPostProps) => {
   return (
     <MotionDiv
@@ -45,14 +45,17 @@ const PostCard = ({ post }: CardPostProps) => {
             <span className="mb-2">
               <b className="text-xl">.</b>
             </span>
-            <h5>Follow</h5>
+            <h5>
+              <FollowButton followId={post.user?.id} />
+            </h5>
           </small>
         </CardHeader>
         <CardBody className="overflow-visible">
-          <img
-            // isBlurred
+          <Image
+            isBlurred
+            unoptimized
             alt={post.caption}
-            // as={NextImage}
+            as={NextImage}
             className="rounded-xl object-cover"
             height={200}
             src={post.imageUrl}

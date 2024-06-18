@@ -305,8 +305,9 @@ export async function unlikePost(postId: number) {
   }
 }
 
-export async function followUser(userId: number, followId: number) {
+export async function followUser(followId: number) {
   try {
+    const userId = await getUserId();
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -316,14 +317,35 @@ export async function followUser(userId: number, followId: number) {
       },
     });
 
+    revalidatePath('dashboard');
+
     return user;
   } catch (error) {
     throw new Error('Error following user');
   }
 }
-
-export async function unfollowUser(userId: number, followId: number) {
+export async function isFollowingUser(followId: number): Promise<boolean> {
   try {
+    const userId = await getUserId();
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        following: {
+          where: { id: followId },
+        },
+      },
+    });
+
+    return (user?.following?.length ?? 0) > 0;
+  } catch (error) {
+    console.error('Error checking if user follows another user:', error);
+
+    return false;
+  }
+}
+export async function unfollowUser(followId: number) {
+  try {
+    const userId = await getUserId();
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -332,6 +354,8 @@ export async function unfollowUser(userId: number, followId: number) {
         },
       },
     });
+
+    revalidatePath('dashboard');
 
     return user;
   } catch (error) {
