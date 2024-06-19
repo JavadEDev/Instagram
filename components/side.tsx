@@ -14,7 +14,7 @@ export default function Side() {
       <div className="flex items-center justify-around">
         <Link className="mb-2 flex h-20 justify-start rounded-md p-4" href="/dashboard">
           <figure className="w-32 pt-4 md:w-40">
-            <Image alt="Instagram" src={Logo} />
+            <Image priority alt="Instagram" src={Logo} />
           </figure>
         </Link>
         <ThemeSwitch />

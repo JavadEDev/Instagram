@@ -336,10 +336,10 @@ export async function isFollowingUser(followId: number): Promise<boolean> {
       },
     });
 
+    revalidatePath('dashboard');
+
     return (user?.following?.length ?? 0) > 0;
   } catch (error) {
-    console.error('Error checking if user follows another user:', error);
-
     return false;
   }
 }
@@ -470,7 +470,7 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
       }
       const { picture } = pictureValidatedField.data;
 
-      const path = await savePic(picture);
+      const path = await uploadPic(picture);
 
       if (!path) {
         throw new Error('Can not save file');
@@ -478,7 +478,7 @@ export async function updateUser(state: SettingsState, formData: FormData): Prom
 
       await prisma.user.update({
         where: { id: userId },
-        data: { picture: '/uploads/' + picture.name },
+        data: { picture: path },
       });
 
       // return { message: 'Picture updated successfully', errors: {} };

@@ -1,27 +1,30 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import toast from 'react-hot-toast';
 
-import { followUser, isFollowingUser, unfollowUser } from '@/lib/action';
+import { followUser, unfollowUser } from '@/lib/action';
 
 interface FollowButtonProps {
   followId: number;
+  isFollowing: boolean;
 }
-const FollowButton: React.FC<FollowButtonProps> = async ({ followId }) => {
+const FollowButton: React.FC<FollowButtonProps> = async ({ followId, isFollowing }) => {
   const [isPending, startTransition] = useTransition();
-  const isFollowing = await isFollowingUser(followId);
+  const [following, setFollowing] = useState(isFollowing);
+
   const handleFollow = async () => {
     try {
-      if (isFollowing) {
+      if (following) {
         await unfollowUser(followId);
         toast.success('Unfollowed successfully');
       } else {
         await followUser(followId);
         toast.success('Followed successfully');
       }
+      setFollowing(!following);
     } catch (error: any) {
-      toast.success(error);
+      toast.error('An error occurred. Please try again.');
     }
   };
 
@@ -29,9 +32,9 @@ const FollowButton: React.FC<FollowButtonProps> = async ({ followId }) => {
     <button
       className={`rounded px-3 py-1 ${isFollowing ? 'bg-zinc-100 text-red-500' : 'bg-gray-200 text-black'}`}
       disabled={isPending}
-      onClick={handleFollow}
+      onClick={() => startTransition(handleFollow)}
     >
-      {isPending ? 'Processing...' : isFollowing ? 'Following' : 'Follow'}
+      {isPending ? '...' : isFollowing ? 'Following' : 'Follow'}
     </button>
   );
 };

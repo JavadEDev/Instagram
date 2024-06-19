@@ -1,20 +1,29 @@
-import { Card, CardHeader, CardBody, Image, Divider, Avatar } from '@nextui-org/react';
+import { Card, CardHeader, CardBody, Divider, Avatar } from '@nextui-org/react';
 import { cn } from '@nextui-org/theme';
-import NextImage from 'next/image';
 
 import { MotionDiv } from './MotionDiv';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
 import CommentButton from './CommentButton';
 import FollowButton from './FollowButton';
+import CardBodyImage from './CardBodyImage';
 
 import { CardPostProps } from '@/types/definitions';
+import { isFollowingUser } from '@/lib/action';
 
 const variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
 };
-const PostCard = ({ post }: CardPostProps) => {
+
+const PostCard = async ({ post }: CardPostProps) => {
+  const userIdPost = post.user?.id;
+  let isFollowing = false;
+
+  if (userIdPost) {
+    isFollowing = await isFollowingUser(userIdPost);
+  }
+
   return (
     <MotionDiv
       animate="visible"
@@ -45,22 +54,13 @@ const PostCard = ({ post }: CardPostProps) => {
             <span className="mb-2">
               <b className="text-xl">.</b>
             </span>
-            <h5>
-              <FollowButton followId={post.user?.id} />
-            </h5>
+            {post.user?.id && (
+              <h5>{<FollowButton followId={post.user.id} isFollowing={isFollowing} />}</h5>
+            )}
           </small>
         </CardHeader>
         <CardBody className="overflow-visible">
-          <Image
-            isBlurred
-            unoptimized
-            alt={post.caption}
-            as={NextImage}
-            className="rounded-xl object-cover"
-            height={200}
-            src={post.imageUrl}
-            width={300}
-          />
+          <CardBodyImage post={post} />
           <div className="flex space-x-2 pt-2">
             <LikeButton post={post} />
             <CommentButton post={post} />
